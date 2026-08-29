@@ -138,15 +138,55 @@ def contem_rpc_nao(texto):
 # CABEÇALHO
 # ============================================================
 
-st.title("📡 RADAR IA")
+st.markdown("""
+<style>
+    .radar-header {
+        background: linear-gradient(135deg, #0086FF 0%, #0066CC 100%);
+        padding: 28px 35px;
+        border-radius: 0 0 18px 18px;
+        margin-bottom: 28px;
+        box-shadow: 0 4px 15px rgba(0, 102, 204, 0.18);
+    }
 
-st.subheader(
-    "Triagem inteligente de ligações para auditoria"
-)
+    .radar-logo {
+        color: white;
+        font-size: 38px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        margin: 0;
+    }
 
-st.write(
-    "O RADAR organiza as ligações do relatório da Genesys "
-    "por nível de atenção para facilitar a auditoria."
+    .radar-subtitle {
+        color: rgba(255,255,255,0.92);
+        font-size: 16px;
+        margin-top: 5px;
+    }
+
+    .radar-version {
+        color: rgba(255,255,255,0.75);
+        font-size: 12px;
+        margin-top: 12px;
+    }
+</style>
+
+<div class="radar-header">
+    <div class="radar-logo">📡 RADAR</div>
+    <div class="radar-subtitle">
+        Inteligência para Auditoria de Atendimento
+    </div>
+    <div class="radar-version">
+        Plataforma de apoio à auditoria de qualidade
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown(
+    """
+    **Bem-vindo ao RADAR!**
+
+    Analise as ligações do relatório da Genesys e identifique
+    rapidamente os atendimentos que precisam de atenção.
+    """
 )
 
 st.divider()
@@ -578,81 +618,166 @@ df_alertas = df[
 
 
 # ============================================================
-# RESUMO
+# PAINEL DE INDICADORES
 # ============================================================
 
 st.divider()
 
-st.header(
-    "🚨 2. Ligações para revisão"
-)
-
+st.header("📊 Visão geral da auditoria")
 
 total_ligacoes = len(df)
 
-
-total_revisoes = len(df_alertas)
-
+total_atendimento = len(
+    df[df["RADAR_TIPO"] == "atendimento"]
+)
 
 total_desconexao = len(
-    df[
-        df["RADAR_TIPO"]
-        == "desconexao"
-    ]
+    df[df["RADAR_TIPO"] == "desconexao"]
 )
 
-
-total_nao_transferidas = len(
-    df[
-        df["RADAR_TIPO"]
-        == "revisao"
-    ]
+total_revisao = len(
+    df[df["RADAR_TIPO"] == "revisao"]
 )
 
-
-total_atendimento = len(
-    df[
-        df["RADAR_TIPO"]
-        == "atendimento"
-    ]
+total_sem_alerta = len(
+    df[df["RADAR_TIPO"] == ""]
 )
 
+st.markdown("""
+<style>
+.radar-card {
+    padding: 22px;
+    border-radius: 14px;
+    background: white;
+    border: 1px solid #E5E7EB;
+    min-height: 145px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.06);
+}
+
+.radar-card-title {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.radar-card-number {
+    font-size: 36px;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+
+.radar-card-description {
+    font-size: 13px;
+    color: #6B7280;
+}
+
+.radar-red {
+    border-top: 5px solid #E53935;
+}
+
+.radar-yellow {
+    border-top: 5px solid #F4B400;
+}
+
+.radar-blue {
+    border-top: 5px solid #4285F4;
+}
+
+.radar-green {
+    border-top: 5px solid #34A853;
+}
+</style>
+""", unsafe_allow_html=True)
 
 c1, c2, c3, c4 = st.columns(4)
 
-
 with c1:
-
-    st.metric(
-        "📞 Total",
-        total_ligacoes
+    st.markdown(
+        f"""
+        <div class="radar-card radar-red">
+            <div class="radar-card-title">
+                🔴 Investigação de atendimento
+            </div>
+            <div class="radar-card-number">
+                {total_atendimento}
+            </div>
+            <div class="radar-card-description">
+                Ligações para investigar
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-
 
 with c2:
-
-    st.metric(
-        "🚨 Para revisão",
-        total_revisoes
+    st.markdown(
+        f"""
+        <div class="radar-card radar-yellow">
+            <div class="radar-card-title">
+                🟡 Investigação de desconexão
+            </div>
+            <div class="radar-card-number">
+                {total_desconexao}
+            </div>
+            <div class="radar-card-description">
+                Possíveis desconexões
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-
 
 with c3:
-
-    st.metric(
-        "🟡 Desconexão",
-        total_desconexao
+    st.markdown(
+        f"""
+        <div class="radar-card radar-blue">
+            <div class="radar-card-title">
+                🔵 Revisão
+            </div>
+            <div class="radar-card-number">
+                {total_revisao}
+            </div>
+            <div class="radar-card-description">
+                Ligações disponíveis para revisão
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-
 
 with c4:
-
-    st.metric(
-        "🔴 Atendimento",
-        total_atendimento
+    st.markdown(
+        f"""
+        <div class="radar-card radar-green">
+            <div class="radar-card-title">
+                🟢 Sem alerta
+            </div>
+            <div class="radar-card-number">
+                {total_sem_alerta}
+            </div>
+            <div class="radar-card-description">
+                Nenhum critério de alerta identificado
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True
     )
 
-
+st.markdown(
+    f"""
+    <div style="
+        margin-top: 18px;
+        padding: 12px 18px;
+        background: #F3F6FA;
+        border-radius: 10px;
+        color: #374151;
+        font-size: 14px;
+    ">
+        📞 <strong>{total_ligacoes}</strong> ligações analisadas no relatório
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 # ============================================================
 # FILTROS
 # ============================================================
