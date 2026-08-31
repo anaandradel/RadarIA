@@ -7,7 +7,14 @@ import time
 from google import genai
 from google.genai import types
 def analisar_com_gemini(prompt, transcricao=None, audio=None):
+    inicio_total = time.perf_counter()
+
     try:
+        # ==============================
+        # PREPARAÇÃO
+        # ==============================
+        inicio_preparacao = time.perf_counter()
+
         client = genai.Client(
             api_key=os.environ["GEMINI_API_KEY"]
         )
@@ -19,37 +26,60 @@ def analisar_com_gemini(prompt, transcricao=None, audio=None):
                 "\n\nTRANSCRIÇÃO DA LIGAÇÃO:\n" + transcricao
             )
 
+        tamanho_audio_mb = 0
+
         if audio is not None:
+            audio_bytes = audio.getvalue()
+            tamanho_audio_mb = len(audio_bytes) / (1024 * 1024)
+
             partes.append(
                 types.Part.from_bytes(
-                    data=audio.getvalue(),
+                    data=audio_bytes,
                     mime_type="audio/mpeg"
                 )
             )
-        for tentativa in range(3):
-            try:
-                resposta = client.models.generate_content(
-                    model="gemini-3.5-flash-lite",
-                    contents=partes
-                )
 
-                return resposta.text
+        tempo_preparacao = time.perf_counter() - inicio_preparacao
 
-            except Exception as e:
-                erro = str(e)
+        print("")
+        print("======================================")
+        print("📡 RADAR - MEDIÇÃO DE DESEMPENHO")
+        print("======================================")
+        print(f"⏱️ Preparação: {tempo_preparacao:.2f}s")
+        print(f"🎙️ Áudio: {tamanho_audio_mb:.2f} MB")
+        print(f"📝 Transcrição: {len(transcricao or '')} caracteres")
 
-                if "503" in erro or "UNAVAILABLE" in erro:
-                    if tentativa < 2:
-                        time.sleep(1 * (tentativa + 1))
-                    else:
-                        return (
-                            "⚠️ O Gemini está temporariamente indisponível "
-                            "por alta demanda. Tente analisar novamente em alguns instantes."
-                        )
-                else:
-                    return f"ERRO NA ANÁLISE COM IA: {erro}"
+        # ==============================
+        # GEMINI
+        # ==============================
+        inicio_gemini = time.perf_counter()
+
+        resposta = client.models.generate_content(
+            model="gemini-3.5-flash-lite",
+            contents=partes
+        )
+
+        tempo_gemini = time.perf_counter() - inicio_gemini
+        tempo_total = time.perf_counter() - inicio_total
+
+        print(f"🧠 Gemini: {tempo_gemini:.2f}s")
+        print(f"⚡ TOTAL: {tempo_total:.2f}s")
+        print("======================================")
+        print("")
+
+        return resposta.text
 
     except Exception as e:
+        tempo_total = time.perf_counter() - inicio_total
+
+        print("")
+        print("======================================")
+        print("❌ ERRO NA ANÁLISE")
+        print(f"⏱️ Tempo até o erro: {tempo_total:.2f}s")
+        print(f"Erro: {str(e)}")
+        print("======================================")
+        print("")
+
         return f"ERRO NA ANÁLISE COM IA: {str(e)}"
 
 # ============================================================
