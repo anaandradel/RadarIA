@@ -138,7 +138,7 @@ def contem_rpc_nao(texto):
     # CABEÇALHO
     # ============================================================
 
-st.markdown("""
+    st.markdown("""
     <style>
         .radar-header {
             background: linear-gradient(135deg, #0086FF 0%, #0066CC 100%);
